@@ -1,6 +1,11 @@
 import scrapy
 import re
 import datetime
+import qrcode
+
+def makeImg(strUrl,name):
+    img = qrcode.make(strUrl)
+    img.save(name+'.png')
 
 class QiandaoSpider(scrapy.spiders.Spider):
     name = "Qiandao"
@@ -14,24 +19,36 @@ class QiandaoSpider(scrapy.spiders.Spider):
         "Content-Type":" application/x-www-form-urlencoded; charset=UTF-8",
         "User-Agent": "mozilla/5.0 (linux; u; android 4.1.2; zh-cn; mi-one plus build/jzo54k) applewebkit/534.30 (khtml, like gecko) version/4.0 mobile safari/534.30 micromessenger/5.0.1.352",
     }
-    cookie = {
-        'PHPSESSID':"",
-        'appunion':"1",
-        "ounion":""
-    }
-    #签到页面的大致范围，2017-2018上的话暂时够用
-    begin = 1000
-    end = 2000
+    cookie = { }
+    #签到页面的大致范围
+    begin = 0
+    end = 1200
     #活动日期
-    date = datetime.datetime.strptime("2017.12.28 15:30", "%Y.%m.%d %H:%M")
+    date = datetime.datetime.strptime("2018.03.14 13:00", "%Y.%m.%d %H:%M")
     #活动名称，不确定的话输单字
-    des = ['高','等','代','数']
+    des = []
     #输出所有签到的文件
     filename1 = 't.txt'
     #输出目标签到的文件
     filename2 = 'link.txt'
 
+    def ini(self):
+        with open("info.txt" ,'r',encoding='utf-8') as t:
+            src = t.readlines()
+            self.begin = int(src[0])
+            self.end = int(src[1])
+            for i in src[2]:
+                self.des.append(i)
+            self.date = datetime.datetime.strptime(src[3], "%Y.%m.%d %H:%M")
+        with open("cookie.txt" ,'r',encoding='utf-8') as t:
+            src = t.readlines()
+            self.cookie = {
+                   'PHPSESSID':"",
+                    'appunion':src[0],
+                    "ounion":src[1]
+                }
     def start_requests(self):
+        self.ini()
         with open(self.filename1,'wb') as target:
             target.write('活动名称 签到开始时间 签到结束时间\n'.encode())
         with open(self.filename2,'wb') as target:
@@ -67,6 +84,7 @@ class QiandaoSpider(scrapy.spiders.Spider):
                 for i in self.des:
                     if(title.find(i)>=0):
                         target.write(response.meta['url']+'\n')
+                        makeImg(response.meta['url'],title)
                         return
 
 
