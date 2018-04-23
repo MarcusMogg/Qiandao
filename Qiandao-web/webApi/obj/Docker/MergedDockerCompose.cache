@@ -1,0 +1,11 @@
+services:
+  qiandao:
+    build:
+      context: D:\vs2017\Web\Qiandao
+      dockerfile: Qiandao/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    image: qiandao
+    ports:
+    - 80/tcp
+version: '3.0'
